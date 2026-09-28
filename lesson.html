@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Zero — The Language of Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161A23;
+  --surface:#1E2430;
+  --surface-2:#262E3D;
+  --border:#333C4E;
+  --text:#EAEDF2;
+  --text-dim:#9AA3B6;
+  --text-faint:#6C7689;
+  --amber:#E8A33D;
+  --amber-dim:#3A2E1C;
+  --cyan:#4FC3D9;
+  --success:#6FCF97;
+  --success-bg:#1C2F26;
+  --error:#E2725B;
+  --error-bg:#332120;
+  --radius:10px;
+  --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+  --font-sans:'IBM Plex Sans', -apple-system, sans-serif;
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#EEF0F3; --border:#DBDFE6;
+    --text:#1B2130; --text-dim:#5B6478; --text-faint:#8A93A6;
+    --amber-dim:#FCEFDA; --success-bg:#E4F6EB; --error-bg:#FBE9E6;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#EEF0F3; --border:#DBDFE6;
+  --text:#1B2130; --text-dim:#5B6478; --text-faint:#8A93A6;
+  --amber-dim:#FCEFDA; --success-bg:#E4F6EB; --error-bg:#FBE9E6;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font-sans);
+  min-height:100vh; display:flex; flex-direction:column;
+}
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px; border-bottom:1px solid var(--border);
+  position:sticky; top:0; background:var(--bg); z-index:20;
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:13px; color:var(--text-dim);}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);}
+.brand b{color:var(--text); font-weight:600;}
+.progress-wrap{display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:12px; color:var(--text-faint);}
+.progress-track{width:140px; height:4px; background:var(--surface-2); border-radius:4px; overflow:hidden;}
+.progress-fill{height:100%; background:var(--amber); border-radius:4px; transition:width .35s ease;}
+main{flex:1; display:flex; justify-content:center; padding:28px 18px 120px; overflow-x:hidden;}
+.slide{width:100%; max-width:760px; display:none; animation:fade .3s ease;}
+.slide.active{display:block;}
+@keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+.eyebrow{font-family:var(--font-mono); font-size:12px; color:var(--amber); margin:0 0 8px;}
+h1.slide-title{font-family:var(--font-mono); font-size:26px; line-height:1.3; margin:0 0 6px; font-weight:600; letter-spacing:-.01em;}
+.slide-purpose{color:var(--text-dim); font-size:14px; margin:0 0 22px;}
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; margin-bottom:16px;}
+.panel-left{border-left:3px solid var(--amber);}
+.instruction{font-size:15px; color:var(--text); margin:0 0 4px; font-weight:600;}
+.instruction-sub{font-size:13.5px; color:var(--text-dim); margin:0 0 16px;}
+.sentence-item{margin-bottom:18px; padding-bottom:16px; border-bottom:1px dashed var(--border);}
+.sentence-item:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0;}
+.sentence-text{font-size:15.5px; line-height:2.1;}
+select.blank{
+  font-family:var(--font-sans); font-size:14px; background:var(--surface-2); color:var(--text);
+  border:1px solid var(--border); border-radius:6px; padding:4px 8px; margin:0 2px;
+}
+select.blank:focus{outline:2px solid var(--amber); outline-offset:1px;}
+.pill-group{display:inline-flex; gap:6px; margin:2px 4px; vertical-align:middle; flex-wrap:wrap;}
+.pill{
+  font-family:var(--font-mono); font-size:12.5px; padding:5px 12px; border-radius:999px;
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); cursor:pointer;
+  transition:.15s;
+}
+.pill:hover{border-color:var(--amber); color:var(--text);}
+.pill.selected{background:var(--amber-dim); border-color:var(--amber); color:var(--text); font-weight:600;}
+.pill:disabled, select.blank:disabled{cursor:default; opacity:.85;}
+.blank-correct select, .blank-correct .pill.selected{border-color:var(--success)!important; background:var(--success-bg)!important;}
+.blank-incorrect select, .blank-incorrect .pill.selected{border-color:var(--error)!important; background:var(--error-bg)!important;}
+.item-feedback{display:none; margin-top:10px; font-size:13.5px; padding:10px 12px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim);}
+.item-feedback.show{display:block;}
+.item-feedback .fb-row{margin-bottom:6px;}
+.item-feedback .fb-row:last-child{margin-bottom:0;}
+.item-feedback b{color:var(--text);}
+.item-feedback .fb-ok{color:var(--success); font-weight:600;}
+.item-feedback .fb-bad{color:var(--error); font-weight:600;}
+.chip-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+.chip{font-family:var(--font-mono); font-size:12px; padding:5px 10px; border-radius:6px; background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim);}
+.result-banner{display:none; text-align:center; padding:20px; border-radius:var(--radius); background:var(--surface-2); border:1px solid var(--border); margin-bottom:16px;}
+.result-banner.show{display:block;}
+.result-banner .rb-label{font-family:var(--font-mono); font-size:12px; color:var(--text-faint); letter-spacing:.04em;}
+.result-banner .rb-score{font-family:var(--font-mono); font-size:34px; font-weight:600; margin:6px 0 2px; color:var(--amber);}
+.result-banner .rb-pct{font-size:13px; color:var(--text-dim);}
+.nav-bar{
+  position:fixed; bottom:0; left:0; right:0; background:var(--bg); border-top:1px solid var(--border);
+  padding:14px 20px; display:flex; align-items:center; justify-content:space-between; z-index:30;
+}
+.nav-inner{max-width:760px; margin:0 auto; width:100%; display:flex; align-items:center; justify-content:space-between;}
+.btn{font-family:var(--font-mono); font-size:13px; padding:11px 20px; border-radius:8px; border:1px solid var(--border);
+  background:var(--surface); color:var(--text); cursor:pointer; font-weight:500; transition:.15s;}
+.btn:hover{border-color:var(--text-dim);}
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+.btn-primary{background:var(--amber); border-color:var(--amber); color:#1A1406; font-weight:600;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-ghost{background:transparent; border-color:transparent; color:var(--text-dim);}
+.btn-ghost:hover{color:var(--text);}
+.nav-right{display:flex; gap:10px;}
+textarea.answer-box{
+  width:100%; min-height:150px; font-family:var(--font-sans); font-size:14.5px; line-height:1.6;
+  background:var(--surface-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:14px; resize:vertical;
+}
+textarea.answer-box:focus{outline:2px solid var(--amber); outline-offset:1px;}
+.wordcount{font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint); margin-top:6px; text-align:right;}
+.question-choice{padding:12px 14px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; cursor:pointer; font-size:14.5px; transition:.15s;}
+.question-choice:hover{border-color:var(--amber);}
+.question-choice.selected{border-color:var(--amber); background:var(--amber-dim);}
+.badge{display:inline-block; font-family:var(--font-mono); font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim);}
+.badge-teacher{border-color:var(--cyan); color:var(--cyan);}
+.badge-optional{border-color:var(--text-faint); color:var(--text-faint);}
+.submit-confirm{display:none; margin-top:14px; padding:14px 16px; border-radius:8px; background:var(--success-bg); border:1px solid var(--success); color:var(--success); font-size:13.5px; font-family:var(--font-mono);}
+.submit-confirm.show{display:block;}
+.chat-window{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:16px;}
+.chat-header{padding:12px 16px; border-bottom:1px solid var(--border); font-family:var(--font-mono); font-size:12.5px; color:var(--text-dim);}
+.chat-body{padding:16px;}
+.chat-msg{display:flex; gap:10px; margin-bottom:14px;}
+.avatar{width:28px; height:28px; border-radius:6px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; font-family:var(--font-mono);}
+.chat-msg .who{font-size:12.5px; font-weight:600; margin-bottom:2px;}
+.chat-msg .txt{font-size:14px; color:var(--text-dim); line-height:1.5;}
+.hero-wrap{text-align:left; padding-top:10px;}
+.hero-icon{font-family:var(--font-mono); font-size:12px; color:var(--amber); border:1px solid var(--border); display:inline-block; padding:4px 10px; border-radius:6px; margin-bottom:18px;}
+.hero-title{font-family:var(--font-mono); font-size:34px; line-height:1.25; font-weight:600; margin:0 0 16px; letter-spacing:-.01em;}
+.hero-body{font-size:15.5px; line-height:1.65; color:var(--text-dim); max-width:600px; margin:0 0 26px;}
+.roadmap{display:flex; flex-direction:column; gap:0; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:8px;}
+.roadmap-row{display:flex; align-items:center; gap:14px; padding:13px 16px; border-bottom:1px solid var(--border); font-size:14px;}
+.roadmap-row:last-child{border-bottom:none;}
+.roadmap-num{font-family:var(--font-mono); font-size:12px; color:var(--text-faint); width:20px;}
+.roadmap-name{flex:1; color:var(--text);}
+.roadmap-tag{font-family:var(--font-mono); font-size:11px; color:var(--text-faint);}
+.final-wrap{text-align:center; padding-top:30px;}
+.final-check{font-size:40px; margin-bottom:10px;}
+.summary-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:22px 0; text-align:left;}
+.summary-card{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px 16px;}
+.summary-card .sc-label{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-bottom:6px;}
+.summary-card .sc-val{font-size:18px; font-weight:600;}
+.example-box{background:var(--surface-2); border-left:3px solid var(--cyan); padding:12px 14px; border-radius:6px; font-size:13.5px; color:var(--text-dim); margin-bottom:16px; font-style:italic;}
+.match-row{display:flex; align-items:center; gap:14px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed var(--border);}
+.match-row:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0;}
+.match-def{flex:1; font-size:14.5px; color:var(--text);}
+.match-def .para-ref{color:var(--text-faint); font-size:12px; font-family:var(--font-mono);}
+@media(max-width:640px){
+  .summary-grid{grid-template-columns:1fr;}
+  .hero-title{font-size:26px;}
+  h1.slide-title{font-size:21px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span><b>Northbridge&nbsp;Labs</b>&nbsp;/ onboarding</div>
+  <div class="progress-wrap">
+    <span id="stepLabel">Step 1 / 17</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<main><div id="slideRoot"></div></main>
+
+<div class="nav-bar"><div class="nav-inner">
+  <button class="btn btn-ghost" id="btnBack">← Back</button>
+  <div class="nav-right" id="navRight"></div>
+</div></div>
+
+<script>
+/* ============================= DATA ============================= */
+
+const WORD_BANK_11 = ["Garbage Collector","advanced","consistent","Due to","concurrent","blend","enforce","various","contribute","retrieval","notable","fundamental"];
+const GLOSSARY_23 = ["notable","concurrent","retrieval","vast","versatile","comprehensive","backbone","streamlined","allocation","various"];
+
+function s(id, tpl, blanks){ return {id, tpl, blanks}; }
+function b(id, answer, explanation){ return {id, answer, explanation}; }
+
+/* ---- Task 1 (1.1) vocabulary cloze, select-type, shared word bank ---- */
+const ex11a = { key:'ex11a', type:'select', wordBank:WORD_BANK_11, items:[
+  s('s1','{a1} the increasing complexity of modern applications, efficient {a2} and {a3} processing have become {a4} skills for any developer.',[
+    b('a1','due to','"Due to" introduces the reason for a situation, similar to "because of".'),
+    b('a2','retrieval','"Data retrieval" — getting data out of storage — pairs naturally with "processing".'),
+    b('a3','concurrent','"Concurrent processing" means handling several tasks at the same time.'),
+    b('a4','fundamental','"Fundamental skills" are the basic, essential skills every developer needs.')
+  ]),
+  s('s2','The {a5} plays a {a6} role in memory management, helping to {a7} proper resource allocation during {a8} tasks.',[
+    b('a5','garbage collector','The Garbage Collector is the tool responsible for memory management, so it is the subject here.'),
+    b('a6','notable','"Plays a notable role" — a noticeable, important part in a process.'),
+    b('a7','enforce','"Enforce proper allocation" — make sure a rule or standard is followed.'),
+    b('a8','concurrent','Memory is often managed "during concurrent tasks" — tasks running at the same time.')
+  ]),
+  s('s3','{a9} teams {a10} to the success of the project by blending {a11} technical skills with {a12} programming principles.',[
+    b('a9','various','"Various teams" — several different teams.'),
+    b('a10','contribute','Teams "contribute to" success — they help bring it about.'),
+    b('a11','advanced','"Advanced technical skills" — a high level of technical ability.'),
+    b('a12','fundamental','"Fundamental programming principles" — the basic principles that everything else is built on.')
+  ]),
+  s('s4','{a13} performance is essential in any system that handles {a14} of large datasets, especially in {a15} environments.',[
+    b('a13','consistent','"Consistent performance" means the system performs reliably every time, not just sometimes.'),
+    b('a14','retrieval','A system "handles retrieval" — the getting/fetching of large datasets.'),
+    b('a15','concurrent','"Concurrent environments" — settings where many processes run at once.')
+  ]),
+  s('s5','In order to {a16} code quality standards, {a17} tools are used to monitor {a18} metrics, ensuring {a19} performance across all stages of development.',[
+    b('a16','enforce','To "enforce standards" means to make sure they are followed.'),
+    b('a17','various','"Various tools" — a number of different tools are used together.'),
+    b('a18','advanced','"Advanced metrics" — more sophisticated measurements, beyond the basics.'),
+    b('a19','consistent','The goal is "consistent performance" — steady results across every stage.')
+  ]),
+  s('s6','To {a20} creativity with technical expertise is a {a21} requirement for any project aiming for a {a22} impact in the tech world.',[
+    b('a20','blend','To "blend" two things is to mix or combine them smoothly.'),
+    b('a21','fundamental','A "fundamental requirement" is a basic, essential one.'),
+    b('a22','notable','A "notable impact" is one that people notice and remember.')
+  ]),
+  s('s7','The {a23}, when working in a {a24} environment, must ensure {a25} memory management, which is crucial for {a26} software performance.',[
+    b('a23','garbage collector','The subject managing memory here is the Garbage Collector again.'),
+    b('a24','concurrent','It works "in a concurrent environment" — where many processes run simultaneously.'),
+    b('a25','consistent','It must ensure "consistent memory management" — reliable, steady management.'),
+    b('a26','advanced','This is "crucial for advanced software performance" — high-level performance.')
+  ])
+]};
+const ex11a_part1 = {...ex11a, items: ex11a.items.slice(0,4)};
+const ex11a_part2 = {...ex11a, items: ex11a.items.slice(4)};
+
+/* ---- Task 3 (2.1) there is/are negatives — pill type ---- */
+const TF_OPTS = ["There isn't","There aren't"];
+function tf(id, text, answer, why){ return s(id, text.replace('___','{'+id+'}'), [{id, answer:answer.toLowerCase(), explanation:why, options:TF_OPTS}]); }
+const ex21_all = { key:'ex21', type:'pill', items:[
+  tf('t1',"___ many programming languages as popular as Python for data analysis.","There aren't","\u201cLanguages\u201d is a plural, countable noun \u2014 plural negatives use \u201cThere aren't\u201d."),
+  tf('t2',"___ much room for error when writing code for mission-critical systems.","There isn't","\u201cRoom\u201d (space) is uncountable here \u2014 uncountable negatives use \u201cThere isn't\u201d."),
+  tf('t3',"___ any programming languages that can do it all; each has its strengths.","There aren't","\u201cLanguages\u201d is plural and countable, so it takes \u201cThere aren't\u201d."),
+  tf('t4',"___ a single correct way to solve every coding problem.","There isn't","\u201cA single way\u201d is singular and countable \u2014 singular negatives use \u201cThere isn't\u201d."),
+  tf('t5',"___ any shortcuts to becoming a proficient programmer; it takes practice.","There aren't","\u201cShortcuts\u201d is plural, so \u201cThere aren't\u201d is correct."),
+  tf('t6',"___ a need for complicated memory management in high-level languages.","There isn't","\u201cA need\u201d is singular, so \u201cThere isn't\u201d is correct."),
+  tf('t7',"___ just one correct answer when debugging complex code.","There isn't","\u201cOne answer\u201d is singular, so \u201cThere isn't\u201d is correct."),
+  tf('t8',"___ a shortage of developers who specialize in mobile app development.","There isn't","\u201cA shortage\u201d is singular, so \u201cThere isn't\u201d is correct.")
+]};
+const ex21_part1 = {...ex21_all, key:'ex21a', items: ex21_all.items.slice(0,4)};
+const ex21_part2 = {...ex21_all, key:'ex21b', items: ex21_all.items.slice(4)};
+
+/* ---- Task 4 (2.2) there is / there are reading — pill type ---- */
+const IA_OPTS = ["There is","There are"];
+function ia(id, answer, why){ return {id, answer:answer.toLowerCase(), explanation:why, options:IA_OPTS}; }
+const ex22a = { key:'ex22a', type:'pill', items:[
+  s('r0','In the vast landscape of computer programming, {r0} numerous languages, each with its unique characteristics and purposes.',[ia('r0','There are','"Languages" is plural, so it takes "There are".')]),
+  s('r1','<b>Python:</b> Python is a versatile language known for its readability and simplicity. {r1} extensive libraries available for a wide range of applications, making it a favorite among developers.',[ia('r1','There are','"Libraries" is plural.')]),
+  s('r2','{r2} a strong emphasis on code readability, and Python is often the language of choice for beginners.',[ia('r2','There is','"Emphasis" is a singular, uncountable-style noun.')]),
+  s('r3','{r3} comprehensive frameworks like Django for web development and NumPy for scientific computing.',[ia('r3','There are','"Frameworks" is plural.')]),
+  s('r4','<b>Java:</b> Java, another prominent language, is known for its "write once, run anywhere" capability. {r4} millions of Java applications in existence, and {r5} a vast community of developers dedicated to its maintenance and improvement.',[ia('r4','There are','"Millions of applications" is plural.'), ia('r5','There is','"A vast community" is singular.')]),
+  s('r6','Java excels in concurrent programming, making it suitable for building multi-threaded applications. {r6} libraries and tools for querying databases and handling data retrieval.',[ia('r6','There are','"Libraries and tools" is plural.')]),
+  s('r7','Java\u2019s platform independence means {r7} Java applications running on various operating systems.',[ia('r7','There are','"Applications" is plural.')])
+]};
+const ex22b = { key:'ex22b', type:'pill', items:[
+  s('r8','<b>JavaScript:</b> JavaScript, often confused with Java, is the backbone of web development. {r8} countless websites and web applications where JavaScript plays a crucial role in creating dynamic user experiences.',[ia('r8','There are','"Websites and web applications" is plural.')]),
+  s('r9','{r9} libraries and frameworks like React, Angular, and Vue.js that simplify front-end development.',[ia('r9','There are','"Libraries and frameworks" is plural.')]),
+  s('r10','Additionally, {r10} Node.js, which extends JavaScript\u2019s capabilities to server-side programming.',[ia('r10','There is','"Node.js" is one single thing, so it is singular.')]),
+  s('r11','<b>Ruby:</b> Ruby is a programming language that focuses on developer happiness. {r11} an elegant and intuitive syntax that allows developers to write code quickly and efficiently.',[ia('r11','There is','"An elegant and intuitive syntax" is singular.')]),
+  s('r12','Ruby on Rails is known for its "convention over configuration" philosophy. {r12} gems, which are packages that extend Ruby\u2019s functionality.',[ia('r12','There are','"Gems" is plural.')]),
+  s('r13','<b>C++:</b> For systems programming and game development, there is C++. {r13} complex data structures and algorithms implemented in C++.',[ia('r13','There are','"Data structures and algorithms" is plural.')]),
+  s('r14','<b>Conclusion:</b> In the world of programming languages, {r14} plenty of choices, each with its own strengths and purposes.',[ia('r14','There are','"Choices" is plural.')])
+]};
+
+/* ---- Task 5 (2.3) matching — select type, shared word bank ---- */
+function md(id, def, ref, answer){ return s(id, def+' <span class="para-ref">('+ref+')</span> {'+id+'}',[b(id,answer.toLowerCase(),'The text uses \u201c'+answer+'\u201d in this sense in '+ref+'.')]); }
+const ex23a = { key:'ex23a', type:'select', wordBank:GLOSSARY_23, layout:'match', items:[
+  md('m1','worthy of attention','paragraph 1','notable'),
+  md('m2','happening or existing at the same time','paragraphs 3 & 4','concurrent'),
+  md('m3','the process of extracting or getting data from a source or storage system','paragraphs 2\u20137','retrieval'),
+  md('m4','large, broad','paragraphs 1 & 3','vast'),
+  md('m5','diverse, having many different uses','paragraph 2','versatile')
+]};
+const ex23b = { key:'ex23b', type:'select', wordBank:GLOSSARY_23, layout:'match', items:[
+  md('m6','complex, full, thorough','paragraph 2','comprehensive'),
+  md('m7','basis, foundation','paragraph 4','backbone'),
+  md('m8','to optimize, make more efficient','paragraph 5','streamlined'),
+  md('m9','distribution (of memory)','paragraph 6','allocation'),
+  md('m10','different kinds, a variety of something','paragraphs 3 & 7','various')
+]};
+
+/* ---- Task 6 (3.1) few/a few/little/a little — pill type ---- */
+const FL_OPTS = ["few","a few","little","a little"];
+function fl(id, text, answer, why){ return s(id, text.replace('___','{'+id+'}'), [{id, answer, explanation:why, options:FL_OPTS}]); }
+const ex31 = { key:'ex31', type:'pill', items:[
+  fl('f1',"Only ___ of us have experience with version control systems, so we're starting from scratch.","a few","\u201cOf us\u201d is countable and the sense is positive (some, not none), so \u201ca few\u201d fits."),
+  fl('f2',"I've explored ___ hosting platforms, each with its unique features.","a few","\u201cPlatforms\u201d is countable, so it takes \u201cfew / a few\u201d, and the meaning here is positive."),
+  fl('f3',"Unfortunately, I have ___ experience with version control systems, but I'm eager to learn.","little","\u201cExperience\u201d is uncountable, and \u201cUnfortunately\u201d signals a negative sense \u2014 almost none \u2014 so \u201clittle\u201d fits."),
+  fl('f4',"You can deploy your application on the hosting platform with ___ simple commands.","a few","\u201cCommands\u201d is countable and the meaning is positive (a small number), so \u201ca few\u201d fits."),
+  fl('f5',"Having ___ knowledge of version control can still contribute to smoother development.","a little","\u201cKnowledge\u201d is uncountable, and \u201ccan still contribute\u201d signals a positive sense \u2014 some, though not much \u2014 so \u201ca little\u201d fits."),
+  fl('f6',"We have ___ experienced developers who are well-versed in version control systems.","a few","\u201cDevelopers\u201d is countable and the sense is positive, so \u201ca few\u201d fits.")
+]};
+
+/* ---- Task 7 (3.2) much/many — pill type ---- */
+const MM_OPTS = ["much","many"];
+function mm(id, text, answer, why){ return s(id, text.replace('___','{'+id+'}'), [{id, answer, explanation:why, options:MM_OPTS}]); }
+const ex32 = { key:'ex32', type:'pill', items:[
+  mm('mu1',"Learning Git doesn't require ___ time, but mastering its intricacies can be challenging.","much","\u201cTime\u201d is uncountable, so it takes \u201cmuch\u201d."),
+  mm('mu2',"She manages ___ repositories on the hosting platform, each dedicated to different client projects.","many","\u201cRepositories\u201d is countable (plural), so it takes \u201cmany\u201d."),
+  mm('mu3',"Our team has gained ___ experience in using version control systems, which streamlines our collaborative efforts.","much","\u201cExperience\u201d is uncountable, so it takes \u201cmuch\u201d."),
+  mm('mu4',"I've explored ___ hosting platforms, each offering its unique features and advantages.","many","\u201cPlatforms\u201d is countable, so it takes \u201cmany\u201d."),
+  mm('mu5',"Having ___ knowledge about version control is crucial for efficient software development.","much","\u201cKnowledge\u201d is uncountable, so it takes \u201cmuch\u201d."),
+  mm('mu6',"___ companies rely on hosting platforms to deploy their web applications swiftly and securely.","many","\u201cCompanies\u201d is countable (plural), so it takes \u201cmany\u201d."),
+  mm('mu7',"Despite having ___ experience with version control, there's always more to learn in this dynamic field.","much","\u201cExperience\u201d is uncountable, so it takes \u201cmuch\u201d.")
+]};
+
+/* ---- Task 8 (3.4) some/any — pill type ---- */
+const SA_OPTS = ["some","any"];
+function sa(id, text, answer, why){ return s(id, text.replace('___','{'+id+'}'), [{id, answer, explanation:why, options:SA_OPTS}]); }
+const ex34 = { key:'ex34', type:'pill', items:[
+  sa('sa1',"We need to conduct ___ thorough testing before deploying our code to ensure it works flawlessly.","some","This is an affirmative statement, so it takes \u201csome\u201d."),
+  sa('sa2',"Is there ___ specific hosting platform you recommend for this type of web application?","any","This is a question, so it takes \u201cany\u201d."),
+  sa('sa3',"We have ___ guidelines to maintain consistency in our version control process.","some","This is an affirmative statement, so it takes \u201csome\u201d."),
+  sa('sa4',"Have you explored ___ alternative version control systems that might suit our project better?","any","This is a question, so it takes \u201cany\u201d."),
+  sa('sa5',"It's essential to spend ___ time on code review during our version control process.","some","This is an affirmative statement, so it takes \u201csome\u201d."),
+  sa('sa6',"___ automated testing tools can significantly improve the quality of our codebase when integrated with our version control system.","some","This is a general affirmative statement (not a question or negative), so it takes \u201csome\u201d.")
+]};
+
+/* ============================= SLIDES ============================= */
+const slides = [
+  {id:'intro', type:'hero'},
+  {id:'roadmap', type:'roadmap'},
+  {id:'vocab1', type:'exercise', data:ex11a_part1, title:'Task 1 · Fix the Onboarding Doc (Part 1 of 2)', purpose:'Vocabulary in context — advanced adjectives & technical nouns', instruction:'The team wiki page on code fundamentals is missing some words. Choose the correct word for each gap from the glossary below.', chips:WORD_BANK_11, kind:'doc'},
+  {id:'vocab2', type:'exercise', data:ex11a_part2, title:'Task 1 · Fix the Onboarding Doc (Part 2 of 2)', purpose:'Vocabulary in context — advanced adjectives & technical nouns', instruction:'Continue completing the wiki page using the same glossary.', chips:WORD_BANK_11, kind:'doc'},
+  {id:'writing1', type:'writing12', title:'Task 2 · Introduce Yourself in #general', purpose:'Free writing practice using target vocabulary', minWords:5},
+  {id:'grammar1', type:'exercise', data:ex21_part1, title:'Task 3 · Programming Facts (Part 1 of 2)', purpose:'There isn\u2019t / there aren\u2019t — countable vs. uncountable', instruction:'Someone posted these statements in the #dev-facts channel. Complete each one with "There isn\u2019t" or "There aren\u2019t".', kind:'chat-lines'},
+  {id:'grammar2', type:'exercise', data:ex21_part2, title:'Task 3 · Programming Facts (Part 2 of 2)', purpose:'There isn\u2019t / there aren\u2019t — countable vs. uncountable', instruction:'Continue completing the statements.', kind:'chat-lines'},
+  {id:'reading1', type:'exercise', data:ex22a, title:'Task 4 · Team Wiki: Choosing a Language (Part 1 of 2)', purpose:'There is / there are — reading for grammar accuracy', instruction:'Read the wiki article and choose "There is" or "There are" for each gap.', kind:'article'},
+  {id:'reading2', type:'exercise', data:ex22b, title:'Task 4 · Team Wiki: Choosing a Language (Part 2 of 2)', purpose:'There is / there are — reading for grammar accuracy', instruction:'Continue the article.', kind:'article'},
+  {id:'match1', type:'exercise', data:ex23a, title:'Task 5 · Build Your Glossary (Part 1 of 2)', purpose:'Vocabulary matching from the wiki article', instruction:'Match each definition to the word from the article that means the same thing.', chips:GLOSSARY_23, kind:'match'},
+  {id:'match2', type:'exercise', data:ex23b, title:'Task 5 · Build Your Glossary (Part 2 of 2)', purpose:'Vocabulary matching from the wiki article', instruction:'Match each remaining definition to its word.', chips:GLOSSARY_23, kind:'match'},
+  {id:'quant1', type:'exercise', data:ex31, title:'Task 6 · Standup Update: Few & Little', purpose:'few / a few / little / a little — countable vs. uncountable, positive vs. negative', instruction:'Complete your teammate\u2019s stand-up notes with the correct quantifier.', kind:'chat-lines'},
+  {id:'quant2', type:'exercise', data:ex32, title:'Task 7 · Standup Update: Much & Many', purpose:'much / many — countable vs. uncountable', instruction:'Complete the notes with "much" or "many".', kind:'chat-lines'},
+  {id:'quant3', type:'exercise', data:ex34, title:'Task 8 · Standup Update: Some & Any', purpose:'some / any — statements vs. questions', instruction:'Complete the notes with "some" or "any".', kind:'chat-lines'},
+  {id:'bonus', type:'writing25', title:'Bonus Task · Research Spotlight', purpose:'Free writing — describing a programming language using there is / there are', optional:true},
+  {id:'final', type:'writing35', title:'Final Task · Friday Demo Update', purpose:'Combining vocabulary, grammar and workplace communication'},
+  {id:'complete', type:'complete'}
+];
+
+/* ============================= STATE ============================= */
+const state = { current:0, answers:{}, checked:{}, results:{}, writing:{} };
+
+function initState(){
+  slides.forEach(sl=>{
+    if(sl.type==='exercise'){
+      state.answers[sl.data.key]={}; state.checked[sl.data.key]=false; state.results[sl.data.key]={correct:0,total:0};
+    }
+  });
+}
+initState();
+
+/* ============================= RENDER HELPERS ============================= */
+function el(html){ const d=document.createElement('div'); d.innerHTML=html; return d.firstElementChild; }
+
+function renderBlank(exKey, blank, type, opts){
+  const val = state.answers[exKey][blank.id] || '';
+  const options = blank.options || opts;
+  if(type==='pill'){
+    let html = `<span class="pill-group" data-blank="${blank.id}">`;
+    options.forEach(o=>{
+      const sel = (val===o.toLowerCase())?'selected':'';
+      html += `<button type="button" class="pill ${sel}" data-value="${o.toLowerCase()}" data-label="${o}">${o}</button>`;
+    });
+    html += `</span>`;
+    return html;
+  } else {
+    let html = `<select class="blank" data-blank="${blank.id}"><option value="" ${val===''?'selected':''}>choose…</option>`;
+    options.forEach(o=>{
+      const lo = o.toLowerCase();
+      html += `<option value="${lo}" ${val===lo?'selected':''}>${o}</option>`;
+    });
+    html += `</select>`;
+    return html;
+  }
+}
+
+function renderExercise(slide){
+  const ex = slide.data;
+  const isChecked = state.checked[ex.key];
+  let chipsHtml = '';
+  if(slide.chips){
+    chipsHtml = `<div class="chip-row">` + slide.chips.map(c=>`<span class="chip">${c}</span>`).join('') + `</div>`;
+  }
+  let bodyHtml = '';
+  ex.items.forEach(item=>{
+    let tpl = item.tpl;
+    item.blanks.forEach(bl=>{
+      const type = ex.type;
+      const opts = ex.wordBank || bl.options;
+      tpl = tpl.replace('{'+bl.id+'}', renderBlank(ex.key, bl, type, opts));
+    });
+    const wrapClass = slide.kind==='match' ? 'match-row' : 'sentence-item';
+    const textClass = slide.kind==='match' ? 'match-def' : 'sentence-text';
+    bodyHtml += `<div class="${wrapClass}" data-item="${item.id}">`;
+    if(slide.kind==='match'){
+      bodyHtml += `<div class="${textClass}">${tpl}</div>`;
+    } else {
+      bodyHtml += `<div class="${textClass}">${tpl}</div>`;
+    }
+    bodyHtml += `<div class="item-feedback" id="fb-${ex.key}-${item.id}"></div>`;
+    bodyHtml += `</div>`;
+  });
+
+  const containerTag = slide.kind==='doc' ? 'doc-panel' : slide.kind==='article' ? 'article-panel' : slide.kind==='chat-lines' ? 'chat-panel' : 'plain-panel';
+
+  let panelOpen, panelClose;
+  if(slide.kind==='chat-lines'){
+    panelOpen = `<div class="chat-window"><div class="chat-header">#daily-standup</div><div class="chat-body">`;
+    panelClose = `</div></div>`;
+  } else {
+    panelOpen = `<div class="panel panel-left">`;
+    panelClose = `</div>`;
+  }
+
+  return `
+    <div class="eyebrow">${slide.purpose}</div>
+    <h1 class="slide-title">${slide.title}</h1>
+    <p class="slide-purpose">${slide.instruction}</p>
+    ${chipsHtml}
+    ${panelOpen}
+      ${bodyHtml}
+    ${panelClose}
+    <div class="result-banner" id="rb-${ex.key}">
+      <div class="rb-label">YOUR RESULT</div>
+      <div class="rb-score" id="rbscore-${ex.key}">0 / 0</div>
+      <div class="rb-pct" id="rbpct-${ex.key}"></div>
+    </div>
+  `;
+}
+
+function renderHero(){
+  return `
+  <div class="hero-wrap">
+    <span class="hero-icon">DAY 1 · ONBOARDING</span>
+    <h1 class="hero-title">Welcome to Northbridge Labs.</h1>
+    <p class="hero-body">It's your first day as a backend developer. Before you join the morning stand-up, HR has sent over your onboarding tasks: fixing a few gaps in the team wiki, replying in Slack, checking some facts about programming languages, and prepping a short update for Friday's demo.</p>
+    <p class="hero-body">Eight short tasks. One sprint. Let's get you set up.</p>
+  </div>`;
+}
+
+function renderRoadmap(){
+  const rows = [
+    ['1–2','Fix the Onboarding Doc','Vocabulary'],
+    ['3','Introduce Yourself in #general','Writing'],
+    ['4–5','Programming Facts','Grammar'],
+    ['6–7','Team Wiki Reading','Grammar'],
+    ['8–9','Build Your Glossary','Vocabulary'],
+    ['10–12','Standup Updates','Grammar'],
+    ['13','Research Spotlight','Bonus'],
+    ['14','Friday Demo Update','Final task']
+  ];
+  return `
+    <div class="eyebrow">YOUR ONBOARDING BOARD</div>
+    <h1 class="slide-title">Eight tasks stand between you and the stand-up.</h1>
+    <p class="slide-purpose">Work through them in order. Each auto-checked task has a CHECK ANSWERS button; writing tasks go to your manager for review.</p>
+    <div class="roadmap">
+    ${rows.map(r=>`<div class="roadmap-row"><span class="roadmap-num">${r[0]}</span><span class="roadmap-name">${r[1]}</span><span class="roadmap-tag">${r[2]}</span></div>`).join('')}
+    </div>
+  `;
+}
+
+function renderWriting12(slide){
+  const qs = [
+    "How do you maintain a consistent level of productivity when juggling concurrent projects?",
+    "What advanced strategies do you use to enforce discipline in your daily routine?",
+    "What fundamental values do you think lead to notable successes in life?"
+  ];
+  const w = state.writing.ex12 || {q:null, text:'', submitted:false};
+  return `
+    <div class="eyebrow">${slide.purpose}</div>
+    <h1 class="slide-title">${slide.title}</h1>
+    <p class="slide-purpose">Someone in #general asked the new hires to introduce themselves. Pick <b>one</b> question below and reply with 5–7 sentences, using the target vocabulary where you can (consistent, concurrent, advanced, enforce, fundamental, notable).</p>
+    <div class="chat-window">
+      <div class="chat-header">#general</div>
+      <div class="chat-body">
+        <div class="chat-msg"><div class="avatar">🧑\u200d💻</div><div><div class="who">Priya (Team Lead)</div><div class="txt">Welcome to the team! Pick one and tell us a bit about yourself 👇</div></div></div>
+        <div id="qChoices">
+          ${qs.map((q,i)=>`<div class="question-choice ${w.q===i?'selected':''}" data-qi="${i}">${q}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <p class="instruction">Your reply</p>
+      <p class="instruction-sub">5–7 sentences.</p>
+      <textarea class="answer-box" id="writing12box" placeholder="Type your reply here…" ${w.submitted?'disabled':''}>${w.text||''}</textarea>
+      <div class="wordcount" id="wc12">0 words</div>
+      <div class="submit-confirm ${w.submitted?'show':''}" id="confirm12">✓ ANSWER SUBMITTED — Your teacher will review this task. <span class="badge badge-teacher" style="margin-left:8px;">TEACHER REVIEW</span></div>
+    </div>
+  `;
+}
+
+function renderWriting25(slide){
+  const w = state.writing.ex25 || {lang:'', text:'', submitted:false};
+  return `
+    <div class="eyebrow">${slide.purpose} <span class="badge badge-optional" style="margin-left:8px;">OPTIONAL</span></div>
+    <h1 class="slide-title">${slide.title}</h1>
+    <p class="slide-purpose">Choose a programming language, do a little research, and present it to the team. Use <b>"there is"</b> and <b>"there are"</b> to describe it — for example: <i>"There is a rich standard library in Python. There are many open-source projects built with JavaScript."</i></p>
+    <div class="panel">
+      <p class="instruction">Cover these points:</p>
+      <p class="instruction-sub">features · libraries · use cases · community support · challenges or limitations</p>
+      <input type="text" id="lang25" placeholder="Which language did you choose?" value="${w.lang||''}" style="width:100%;padding:10px 12px;margin-bottom:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-sans);font-size:14px;" ${w.submitted?'disabled':''}>
+      <textarea class="answer-box" id="writing25box" placeholder="Write your presentation here…" ${w.submitted?'disabled':''}>${w.text||''}</textarea>
+      <div class="wordcount" id="wc25">0 words</div>
+      <div class="submit-confirm ${w.submitted?'show':''}" id="confirm25">✓ ANSWER SUBMITTED — Your teacher will review this task. <span class="badge badge-teacher" style="margin-left:8px;">TEACHER REVIEW</span></div>
+    </div>
+  `;
+}
+
+function renderWriting35(slide){
+  const w = state.writing.ex35 || {text:'', submitted:false};
+  return `
+    <div class="eyebrow">${slide.purpose}</div>
+    <h1 class="slide-title">${slide.title}</h1>
+    <p class="slide-purpose">It's almost Friday. Prepare your update for the team demo about a project, tool, or technology you're using. Use <b>at least five different quantifiers</b> (much, many, some, any, a lot of, few, several, a little…).</p>
+    <div class="panel">
+      <p class="instruction">Cover these points:</p>
+      <p class="instruction-sub">
+        • How much time you spend on it &nbsp;·&nbsp; how many tasks it helps with &nbsp;·&nbsp; any challenges you face &nbsp;·&nbsp;
+        how many teammates work on it with you &nbsp;·&nbsp; favorite resources &nbsp;·&nbsp; the benefits you get from it
+      </p>
+    </div>
+    <div class="example-box">Example: "I spend a lot of time using this tool every week. It helps me accomplish many tasks, such as data analysis and reporting. There are some challenges I face, like learning new features. I collaborate with few team members on this project, and I rely on several online resources for tutorials."</div>
+    <div class="panel">
+      <p class="instruction">Your demo update</p>
+      <textarea class="answer-box" id="writing35box" placeholder="Write your update here…" ${w.submitted?'disabled':''}>${w.text||''}</textarea>
+      <div class="wordcount" id="wc35">0 words</div>
+      <div class="submit-confirm ${w.submitted?'show':''}" id="confirm35">✓ ANSWER SUBMITTED — Your teacher will review this task. <span class="badge badge-teacher" style="margin-left:8px;">TEACHER REVIEW</span></div>
+    </div>
+  `;
+}
+
+function computeAutoTotals(){
+  let correct=0, total=0;
+  Object.values(state.results).forEach(r=>{ correct+=r.correct; total+=r.total; });
+  return {correct,total};
+}
+function renderComplete(){
+  const {correct,total} = computeAutoTotals();
+  const pct = total? Math.round(correct/total*100) : 0;
+  const writingKeys = ['ex12','ex25','ex35'];
+  const submittedCount = writingKeys.filter(k=>state.writing[k]&&state.writing[k].submitted).length;
+  return `
+  <div class="final-wrap">
+    <div class="final-check">✅</div>
+    <div class="eyebrow" style="text-align:center;">SPRINT ZERO</div>
+    <h1 class="slide-title" style="text-align:center;">Onboarding complete.</h1>
+    <p class="slide-purpose" style="text-align:center;">Status: ready for the stand-up.</p>
+    <div class="summary-grid">
+      <div class="summary-card"><div class="sc-label">AUTOMATIC TASKS</div><div class="sc-val">${correct} / ${total} correct (${pct}%)</div></div>
+      <div class="summary-card"><div class="sc-label">WRITING TASKS SUBMITTED</div><div class="sc-val">${submittedCount} / 3 <span class="badge badge-teacher" style="margin-left:6px;">TEACHER REVIEW</span></div></div>
+      <div class="summary-card"><div class="sc-label">VOCABULARY</div><div class="sc-val">✓ practiced</div></div>
+      <div class="summary-card"><div class="sc-label">GRAMMAR</div><div class="sc-val">✓ practiced</div></div>
+    </div>
+    <p class="slide-purpose">Nice work — see you at the demo on Friday.</p>
+  </div>`;
+}
+
+/* ============================= NAV / SCORING LOGIC ============================= */
+function slideRoot(){ return document.getElementById('slideRoot'); }
+
+function renderCurrent(){
+  const sl = slides[state.current];
+  let html = '';
+  if(sl.type==='hero') html = renderHero();
+  else if(sl.type==='roadmap') html = renderRoadmap();
+  else if(sl.type==='exercise') html = renderExercise(sl);
+  else if(sl.type==='writing12') html = renderWriting12(sl);
+  else if(sl.type==='writing25') html = renderWriting25(sl);
+  else if(sl.type==='writing35') html = renderWriting35(sl);
+  else if(sl.type==='complete') html = renderComplete();
+
+  slideRoot().innerHTML = `<div class="slide active">${html}</div>`;
+  attachHandlers(sl);
+  updateTopbar();
+  updateNav();
+}
+
+function attachHandlers(sl){
+  if(sl.type==='exercise'){
+    const ex = sl.data;
+    const root = slideRoot();
+    root.querySelectorAll('.pill-group').forEach(group=>{
+      group.querySelectorAll('.pill').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          if(state.checked[ex.key]) return;
+          state.answers[ex.key][group.dataset.blank] = btn.dataset.value;
+          group.querySelectorAll('.pill').forEach(p=>p.classList.remove('selected'));
+          btn.classList.add('selected');
+          updateNav();
+        });
+      });
+    });
+    root.querySelectorAll('select.blank').forEach(sel=>{
+      sel.addEventListener('change', ()=>{
+        state.answers[ex.key][sel.dataset.blank] = sel.value;
+        updateNav();
+      });
+    });
+    if(state.checked[ex.key]) applyExerciseFeedback(ex, sl, false);
+  }
+  if(sl.type==='writing12'){
+    const box = document.getElementById('writing12box');
+    const wc = document.getElementById('wc12');
+    const w = state.writing.ex12 || (state.writing.ex12={q:null,text:'',submitted:false});
+    const updateWc = ()=>{ wc.textContent = (box.value.trim()? box.value.trim().split(/\s+/).length:0)+' words'; };
+    updateWc();
+    box.addEventListener('input', ()=>{ w.text=box.value; updateWc(); updateNav(); });
+    slideRoot().querySelectorAll('.question-choice').forEach(c=>{
+      c.addEventListener('click', ()=>{
+        if(w.submitted) return;
+        w.q = parseInt(c.dataset.qi);
+        slideRoot().querySelectorAll('.question-choice').forEach(x=>x.classList.remove('selected'));
+        c.classList.add('selected');
+        updateNav();
+      });
+    });
+    updateNav();
+  }
+  if(sl.type==='writing25'){
+    const box = document.getElementById('writing25box');
+    const langInput = document.getElementById('lang25');
+    const wc = document.getElementById('wc25');
+    const w = state.writing.ex25 || (state.writing.ex25={lang:'',text:'',submitted:false});
+    const updateWc = ()=>{ wc.textContent = (box.value.trim()? box.value.trim().split(/\s+/).length:0)+' words'; };
+    updateWc();
+    box.addEventListener('input', ()=>{ w.text=box.value; updateWc(); updateNav(); });
+    langInput.addEventListener('input', ()=>{ w.lang=langInput.value; updateNav(); });
+  }
+  if(sl.type==='writing35'){
+    const box = document.getElementById('writing35box');
+    const wc = document.getElementById('wc35');
+    const w = state.writing.ex35 || (state.writing.ex35={text:'',submitted:false});
+    const updateWc = ()=>{ wc.textContent = (box.value.trim()? box.value.trim().split(/\s+/).length:0)+' words'; };
+    updateWc();
+    box.addEventListener('input', ()=>{ w.text=box.value; updateWc(); updateNav(); });
+  }
+}
+
+function allBlanksAnswered(ex){
+  let ok = true;
+  ex.items.forEach(item=>item.blanks.forEach(bl=>{
+    if(!state.answers[ex.key][bl.id]) ok=false;
+  }));
+  return ok;
+}
+
+function scoreExercise(ex){
+  let correct=0, total=0;
+  ex.items.forEach(item=>{
+    item.blanks.forEach(bl=>{
+      total++;
+      const given = state.answers[ex.key][bl.id] || '';
+      if(given.toLowerCase()===bl.answer.toLowerCase()) correct++;
+    });
+  });
+  state.results[ex.key] = {correct,total};
+  return {correct,total};
+}
+
+function applyExerciseFeedback(ex, sl){
+  ex.items.forEach(item=>{
+    const container = slideRoot().querySelector(`[data-item="${item.id}"]`);
+    if(!container) return;
+    let anyWrong = false;
+    const rows = [];
+    item.blanks.forEach(bl=>{
+      const given = state.answers[ex.key][bl.id] || '';
+      const isCorrect = given.toLowerCase()===bl.answer.toLowerCase();
+      const wrap = container.querySelector(`[data-blank="${bl.id}"]`)?.closest('.pill-group, select') || container.querySelector(`[data-blank="${bl.id}"]`);
+      const holder = container.querySelector(`.pill-group[data-blank="${bl.id}"], select[data-blank="${bl.id}"]`);
+      if(holder){
+        holder.classList.remove('blank-correct','blank-incorrect');
+        // wrap parent span for select styling
+        let target = holder.tagName==='SELECT' ? holder.parentElement : holder;
+        if(holder.tagName==='SELECT'){
+          holder.style.borderColor = isCorrect ? 'var(--success)' : 'var(--error)';
+          holder.style.background = isCorrect ? 'var(--success-bg)' : 'var(--error-bg)';
+        } else {
+          holder.classList.add(isCorrect?'blank-correct':'blank-incorrect');
+        }
+        holder.querySelectorAll && holder.querySelectorAll('.pill').forEach(p=>p.disabled=true);
+        if(holder.tagName==='SELECT') holder.disabled=true;
+      }
+      if(!isCorrect){
+        anyWrong = true;
+        rows.push(`<div class="fb-row"><span class="fb-bad">✗</span> Your answer: <b>${given||'(none)'}</b> — Correct: <b>${bl.answer}</b>. ${bl.explanation||''}</div>`);
+      } else {
+        rows.push(`<div class="fb-row"><span class="fb-ok">✓ Correct.</span> ${bl.explanation? '' : ''}</div>`);
+      }
+    });
+    const fb = container.querySelector('.item-feedback');
+    if(fb){
+      fb.innerHTML = anyWrong ? rows.filter(r=>r.includes('fb-bad')).join('') : `<div class="fb-row"><span class="fb-ok">✓ Correct.</span></div>`;
+      fb.classList.add('show');
+    }
+  });
+  const {correct,total} = state.results[ex.key];
+  const pct = total? Math.round(correct/total*100):0;
+  const rb = document.getElementById(`rb-${ex.key}`);
+  if(rb){
+    rb.classList.add('show');
+    document.getElementById(`rbscore-${ex.key}`).textContent = `${correct} / ${total} correct`;
+    document.getElementById(`rbpct-${ex.key}`).textContent = `${pct}%`;
+  }
+}
+
+function retryExercise(ex){
+  state.checked[ex.key] = false;
+  slideRoot().querySelectorAll('.pill').forEach(p=>p.disabled=false);
+  slideRoot().querySelectorAll('select.blank').forEach(sel=>{ sel.disabled=false; sel.style.borderColor=''; sel.style.background=''; });
+  slideRoot().querySelectorAll('.pill-group').forEach(g=>g.classList.remove('blank-correct','blank-incorrect'));
+  slideRoot().querySelectorAll('.item-feedback').forEach(f=>{ f.classList.remove('show'); f.innerHTML=''; });
+  const rb = document.getElementById(`rb-${ex.key}`);
+  if(rb) rb.classList.remove('show');
+  updateNav();
+}
+
+/* ============================= TOPBAR / NAV ============================= */
+function updateTopbar(){
+  document.getElementById('stepLabel').textContent = `Step ${state.current+1} / ${slides.length}`;
+  document.getElementById('progressFill').style.width = `${(state.current/(slides.length-1))*100}%`;
+}
+
+function updateNav(){
+  const sl = slides[state.current];
+  const back = document.getElementById('btnBack');
+  back.style.visibility = state.current===0 ? 'hidden' : 'visible';
+  const right = document.getElementById('navRight');
+  right.innerHTML = '';
+
+  if(sl.type==='hero'){
+    right.innerHTML = `<button class="btn btn-primary" id="btnNext">Start onboarding →</button>`;
+    document.getElementById('btnNext').onclick = goNext;
+  } else if(sl.type==='roadmap'){
+    right.innerHTML = `<button class="btn btn-primary" id="btnNext">Continue →</button>`;
+    document.getElementById('btnNext').onclick = goNext;
+  } else if(sl.type==='exercise'){
+    const ex = sl.data;
+    if(!state.checked[ex.key]){
+      const ready = allBlanksAnswered(ex);
+      right.innerHTML = `<button class="btn btn-primary" id="btnCheck" ${ready?'':'disabled'}>Check answers</button>`;
+      document.getElementById('btnCheck').onclick = ()=>{
+        scoreExercise(ex);
+        state.checked[ex.key] = true;
+        applyExerciseFeedback(ex, sl);
+        updateNav();
+      };
+    } else {
+      right.innerHTML = `<button class="btn" id="btnRetry">Retry</button><button class="btn btn-primary" id="btnContinue">Continue →</button>`;
+      document.getElementById('btnRetry').onclick = ()=>retryExercise(ex);
+      document.getElementById('btnContinue').onclick = goNext;
+    }
+  } else if(sl.type==='writing12'){
+    const w = state.writing.ex12 || {};
+    if(!w.submitted){
+      const ready = w.q!=null && w.text && w.text.trim().split(/\s+/).length>=5;
+      right.innerHTML = `<button class="btn btn-primary" id="btnSubmit" ${ready?'':'disabled'}>Submit</button>`;
+      document.getElementById('btnSubmit').onclick = ()=>{
+        w.submitted = true;
+        document.getElementById('confirm12').classList.add('show');
+        document.getElementById('writing12box').disabled = true;
+        updateNav();
+      };
+    } else {
+      right.innerHTML = `<button class="btn btn-primary" id="btnNext">Continue →</button>`;
+      document.getElementById('btnNext').onclick = goNext;
+    }
+  } else if(sl.type==='writing25'){
+    const w = state.writing.ex25 || {};
+    if(!w.submitted){
+      const ready = w.text && w.text.trim().split(/\s+/).length>=15;
+      right.innerHTML = `<button class="btn btn-ghost" id="btnSkip">Skip (optional)</button><button class="btn btn-primary" id="btnSubmit" ${ready?'':'disabled'}>Submit</button>`;
+      document.getElementById('btnSkip').onclick = goNext;
+      document.getElementById('btnSubmit').onclick = ()=>{
+        w.submitted = true;
+        document.getElementById('confirm25').classList.add('show');
+        document.getElementById('writing25box').disabled = true;
+        document.getElementById('lang25').disabled = true;
+        updateNav();
+      };
+    } else {
+      right.innerHTML = `<button class="btn btn-primary" id="btnNext">Continue →</button>`;
+      document.getElementById('btnNext').onclick = goNext;
+    }
+  } else if(sl.type==='writing35'){
+    const w = state.writing.ex35 || {};
+    if(!w.submitted){
+      const ready = w.text && w.text.trim().split(/\s+/).length>=20;
+      right.innerHTML = `<button class="btn btn-primary" id="btnSubmit" ${ready?'':'disabled'}>Submit</button>`;
+      document.getElementById('btnSubmit').onclick = ()=>{
+        w.submitted = true;
+        document.getElementById('confirm35').classList.add('show');
+        document.getElementById('writing35box').disabled = true;
+        updateNav();
+      };
+    } else {
+      right.innerHTML = `<button class="btn btn-primary" id="btnNext">Finish →</button>`;
+      document.getElementById('btnNext').onclick = goNext;
+    }
+  } else if(sl.type==='complete'){
+    right.innerHTML = `<span class="badge">🎉 sprint complete</span>`;
+  }
+}
+
+function goNext(){ if(state.current < slides.length-1){ state.current++; renderCurrent(); window.scrollTo(0,0); } }
+function goBack(){ if(state.current>0){ state.current--; renderCurrent(); window.scrollTo(0,0); } }
+document.getElementById('btnBack').addEventListener('click', goBack);
+
+renderCurrent();
+</script>
+</body>
+</html>
